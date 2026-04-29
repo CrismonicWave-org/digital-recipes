@@ -1,0 +1,268 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://recipesgalore.app/schemas/recipe.json",
+  "title": "RecipesGalore Recipe Schema",
+  "description": "Schema for validating recipe YAML frontmatter in RecipesGalore digital-recipes repository",
+  "type": "object",
+  "required": [
+    "title",
+    "slug",
+    "category",
+    "difficulty",
+    "totalTime",
+    "servings"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Human-readable recipe title",
+      "minLength": 3,
+      "maxLength": 100,
+      "examples": ["Classic Smash Burger", "Blackstone Ribeye & Asparagus"]
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly slug (lowercase, hyphens only)",
+      "pattern": "^[a-z0-9-]+$",
+      "minLength": 3,
+      "maxLength": 100,
+      "examples": ["classic-smash-burger", "blackstone-ribeye-asparagus"]
+    },
+    "category": {
+      "type": "string",
+      "description": "Primary meal category",
+      "enum": [
+        "breakfast",
+        "lunch",
+        "dinner",
+        "appetizer",
+        "dessert",
+        "snack",
+        "drink",
+        "side-dish"
+      ]
+    },
+    "difficulty": {
+      "type": "string",
+      "description": "Cooking skill level required",
+      "enum": ["beginner", "intermediate", "advanced"]
+    },
+    "totalTime": {
+      "type": "integer",
+      "description": "Total time in minutes (prep + cook)",
+      "minimum": 1,
+      "maximum": 1440,
+      "examples": [25, 60, 180]
+    },
+    "servings": {
+      "type": "integer",
+      "description": "Number of servings the recipe yields",
+      "minimum": 1,
+      "maximum": 100,
+      "examples": [2, 4, 6, 8]
+    },
+    "primaryProtein": {
+      "type": "string",
+      "description": "Main protein ingredient",
+      "enum": [
+        "beef",
+        "chicken",
+        "pork",
+        "fish",
+        "seafood",
+        "lamb",
+        "turkey",
+        "tofu",
+        "tempeh",
+        "legumes",
+        "eggs",
+        "none"
+      ]
+    },
+    "cuisine": {
+      "type": "string",
+      "description": "Cultural or regional cuisine style",
+      "enum": [
+        "american",
+        "italian",
+        "mexican",
+        "asian",
+        "chinese",
+        "japanese",
+        "indian",
+        "mediterranean",
+        "french",
+        "thai",
+        "greek",
+        "cajun",
+        "korean",
+        "vietnamese",
+        "middle-eastern",
+        "caribbean",
+        "fusion"
+      ]
+    },
+    "cookingMethods": {
+      "type": "array",
+      "description": "Cooking methods/equipment used (can be multiple)",
+      "items": {
+        "type": "string",
+        "enum": [
+          "grill",
+          "smoker",
+          "oven",
+          "stovetop",
+          "slow-cooker",
+          "instant-pot",
+          "air-fryer",
+          "blackstone",
+          "griddle",
+          "no-cook",
+          "microwave",
+          "sous-vide",
+          "deep-fryer",
+          "dutch-oven",
+          "cast-iron"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 5,
+      "uniqueItems": true
+    },
+    "dietaryTags": {
+      "type": "array",
+      "description": "Dietary restrictions and lifestyle tags (can be multiple)",
+      "items": {
+        "type": "string",
+        "enum": [
+          "gluten-free",
+          "dairy-free",
+          "vegetarian",
+          "vegan",
+          "keto",
+          "paleo",
+          "low-carb",
+          "low-sodium",
+          "nut-free",
+          "egg-free",
+          "soy-free",
+          "sugar-free",
+          "whole30",
+          "pescatarian"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "occasions": {
+      "type": "array",
+      "description": "Occasions or contexts where this recipe fits",
+      "items": {
+        "type": "string",
+        "enum": [
+          "weeknight-dinner",
+          "weekend",
+          "meal-prep",
+          "holiday",
+          "game-day",
+          "potluck",
+          "date-night",
+          "party",
+          "bbq",
+          "brunch",
+          "picnic",
+          "camping",
+          "tailgate"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "seasons": {
+      "type": "array",
+      "description": "Best seasons for this recipe",
+      "items": {
+        "type": "string",
+        "enum": ["spring", "summer", "fall", "winter", "year-round"]
+      },
+      "uniqueItems": true
+    },
+    "prepTime": {
+      "type": "integer",
+      "description": "Preparation time in minutes (optional, separate from cook time)",
+      "minimum": 0,
+      "maximum": 720
+    },
+    "cookTime": {
+      "type": "integer",
+      "description": "Cooking time in minutes (optional, separate from prep time)",
+      "minimum": 0,
+      "maximum": 1440
+    },
+    "author": {
+      "type": "string",
+      "description": "Recipe author or contributor name",
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "description": "Short recipe description or summary",
+      "maxLength": 500
+    },
+    "featuredImage": {
+      "type": "string",
+      "description": "Path to featured image (relative to repo root)",
+      "pattern": "^(/|\\./).*\\.(jpg|jpeg|png|webp)$",
+      "examples": ["/assets/images/smash-burger.jpg", "./images/ribeye.png"]
+    },
+    "images": {
+      "type": "array",
+      "description": "Additional recipe images",
+      "items": {
+        "type": "string",
+        "pattern": "^(/|\\./).*\\.(jpg|jpeg|png|webp)$"
+      }
+    },
+    "videoUrl": {
+      "type": "string",
+      "description": "URL to recipe video (YouTube, Vimeo, etc.)",
+      "format": "uri"
+    },
+    "status": {
+      "type": "string",
+      "description": "Publication status",
+      "enum": ["draft", "published", "archived"],
+      "default": "published"
+    },
+    "featured": {
+      "type": "boolean",
+      "description": "Whether to feature this recipe prominently",
+      "default": false
+    },
+    "dateCreated": {
+      "type": "string",
+      "description": "ISO 8601 date when recipe was created",
+      "format": "date",
+      "examples": ["2024-02-27"]
+    },
+    "dateModified": {
+      "type": "string",
+      "description": "ISO 8601 date when recipe was last modified",
+      "format": "date",
+      "examples": ["2024-04-28"]
+    },
+    "tags": {
+      "type": "array",
+      "description": "Additional free-form tags for search",
+      "items": {
+        "type": "string",
+        "maxLength": 50
+      },
+      "uniqueItems": true
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes or comments (not displayed to users)",
+      "maxLength": 1000
+    }
+  },
+  "additionalProperties": false
+}
