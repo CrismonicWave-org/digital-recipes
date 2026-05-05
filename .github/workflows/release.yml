@@ -1,0 +1,90 @@
+name: Create Release with Recipes ZIP
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v0.0.1, v1.0.0, etc.
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Get tag name
+        id: tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+      - name: Create recipes ZIP
+        run: |
+          cd recipes
+          # Exclude TEMPLATE.md from the ZIP
+          zip -r ../recipes.zip . -x "TEMPLATE.md"
+          cd ..
+          
+          # Verify ZIP was created
+          ls -lh recipes.zip
+          echo "ZIP contents:"
+          unzip -l recipes.zip | head -20
+      
+      - name: Count recipes
+        id: count
+        run: |
+          RECIPE_COUNT=$(find recipes -name "*.md" -not -name "TEMPLATE.md" | wc -l | tr -d ' ')
+          echo "count=${RECIPE_COUNT}" >> $GITHUB_OUTPUT
+          echo "Found ${RECIPE_COUNT} recipes"
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: recipes.zip
+          body: |
+            ## 🍳 RecipesGalore Recipe Collection ${{ steps.tag.outputs.tag }}
+            
+            This release contains **${{ steps.count.outputs.count }} recipes** in ZIP format for mobile and web app consumption.
+            
+            ### 📦 Download
+            
+            **Direct Download URL:**
+            ```
+            https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/recipes.zip
+            ```
+            
+            ### 📱 Mobile App Integration
+            
+            The mobile app can fetch this ZIP directly without authentication:
+            
+            ```javascript
+            const downloadUrl = 'https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/recipes.zip';
+            ```
+            
+            ### 📄 Format
+            
+            Each recipe is a Markdown file with YAML frontmatter containing:
+            - Recipe metadata (title, category, cuisine, protein, difficulty, etc.)
+            - Full instructions with prep and cook times
+            - Ingredient lists
+            - Chef's notes and substitutions
+            - Nutrition information
+            
+            ### 🔍 Usage
+            
+            1. Download `recipes.zip`
+            2. Extract to local filesystem
+            3. Parse each `.md` file for YAML frontmatter
+            4. Filter/search recipes by facets (category, protein, cuisine, etc.)
+            
+            ---
+            
+            *Generated automatically via GitHub Actions*
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
