@@ -23,6 +23,14 @@ if [ ! -f "RELEASE_PROCESS.md" ]; then
     exit 1
 fi
 
+# Check for a clean working tree before doing anything else
+if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+    echo -e "${RED}Error: Working tree has uncommitted changes.${NC}"
+    echo "Please commit or stash your changes before creating a release."
+    git status --short
+    exit 1
+fi
+
 # Check if we're on main branch
 CURRENT_BRANCH=$(git branch --show-current)
 if [ "$CURRENT_BRANCH" != "main" ]; then
@@ -31,7 +39,11 @@ if [ "$CURRENT_BRANCH" != "main" ]; then
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         git checkout main
-        git pull
+        if ! git pull --ff-only origin main; then
+            echo -e "${RED}Error: Could not fast-forward local main to origin/main.${NC}"
+            echo "Your local main has diverged from origin. Please resolve this before releasing."
+            exit 1
+        fi
         echo -e "${GREEN}Switched to main and pulled latest changes${NC}"
     else
         echo -e "${RED}Aborted. Please checkout main branch first.${NC}"
@@ -41,7 +53,11 @@ fi
 
 # Pull latest changes
 echo -e "${BLUE}Pulling latest changes from origin/main...${NC}"
-git pull origin main
+if ! git pull --ff-only origin main; then
+    echo -e "${RED}Error: Could not fast-forward local main to origin/main.${NC}"
+    echo "Your local main has diverged from origin. Please resolve this before releasing."
+    exit 1
+fi
 
 # Count recipes (excluding TEMPLATE.md)
 RECIPE_COUNT=$(find recipes -name "*.md" -not -name "TEMPLATE.md" | wc -l | tr -d ' ')

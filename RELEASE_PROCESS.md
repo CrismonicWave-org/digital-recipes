@@ -38,11 +38,13 @@ The easiest way to create a release is with the helper script:
 ```
 
 The script will:
+- ✅ Check for a clean working tree (no uncommitted changes)
 - ✅ Verify you're on the `main` branch
-- ✅ Pull latest changes
+- ✅ Pull latest changes (fast-forward only, fails if branches have diverged)
 - ✅ Count recipes
 - ✅ Prompt for version number
 - ✅ Validate version format
+- ✅ Check tag doesn't already exist (locally and on origin)
 - ✅ Create and push the tag
 - ✅ Display the release URL
 
