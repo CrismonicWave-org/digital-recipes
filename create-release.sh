@@ -60,11 +60,18 @@ fi
 
 TAG_NAME="v${VERSION}"
 
-# Check if tag already exists
+# Check if tag already exists locally or on origin
 if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-    echo -e "${RED}Error: Tag ${TAG_NAME} already exists!${NC}"
-    echo "Existing tags:"
+    echo -e "${RED}Error: Tag ${TAG_NAME} already exists locally!${NC}"
+    echo "Existing local tags:"
     git tag -l
+    exit 1
+fi
+
+if git ls-remote --tags --exit-code origin "refs/tags/${TAG_NAME}" >/dev/null 2>&1; then
+    echo -e "${RED}Error: Tag ${TAG_NAME} already exists on origin!${NC}"
+    echo "Matching remote tag:"
+    echo "${TAG_NAME}"
     exit 1
 fi
 
