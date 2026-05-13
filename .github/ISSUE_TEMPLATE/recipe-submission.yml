@@ -1,0 +1,254 @@
+name: 🍳 Recipe Submission
+description: Submit a new recipe to RecipesGalore
+title: "[Recipe] "
+labels: ["recipe-submission", "needs-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Submit a Recipe to RecipesGalore! 🎉
+        
+        Thank you for contributing to our community recipe collection! Please fill out the form below with as much detail as possible.
+        
+        **Note:** All submissions will be reviewed before being added to the collection.
+
+  - type: input
+    id: title
+    attributes:
+      label: Recipe Title
+      description: What is the name of your recipe?
+      placeholder: "e.g., Classic Chocolate Chip Cookies"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A short, enticing description of this recipe (1-2 sentences)
+      placeholder: "Soft, chewy chocolate chip cookies with perfectly crispy edges. The ultimate homemade treat!"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: What meal or course is this recipe for?
+      options:
+        - breakfast
+        - lunch
+        - dinner
+        - appetizer
+        - dessert
+        - snack
+        - drink
+        - side-dish
+    validations:
+      required: true
+
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: Difficulty Level
+      description: How difficult is this recipe to make?
+      options:
+        - beginner
+        - intermediate
+        - advanced
+    validations:
+      required: true
+
+  - type: input
+    id: totalTime
+    attributes:
+      label: Total Time (minutes)
+      description: How long does it take from start to finish?
+      placeholder: "30"
+    validations:
+      required: true
+
+  - type: input
+    id: prepTime
+    attributes:
+      label: Prep Time (minutes)
+      description: How long for preparation? (Optional)
+      placeholder: "15"
+    validations:
+      required: false
+
+  - type: input
+    id: cookTime
+    attributes:
+      label: Cook Time (minutes)
+      description: How long for cooking? (Optional)
+      placeholder: "15"
+    validations:
+      required: false
+
+  - type: input
+    id: servings
+    attributes:
+      label: Servings
+      description: How many servings does this recipe make?
+      placeholder: "4"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: protein
+    attributes:
+      label: Primary Protein
+      description: What is the main protein in this recipe? (Optional)
+      options:
+        - none
+        - beef
+        - chicken
+        - pork
+        - fish
+        - seafood
+        - lamb
+        - turkey
+        - tofu
+        - tempeh
+        - legumes
+        - eggs
+    validations:
+      required: false
+
+  - type: dropdown
+    id: cuisine
+    attributes:
+      label: Cuisine Type
+      description: What cuisine does this recipe belong to? (Optional)
+      options:
+        - american
+        - italian
+        - mexican
+        - asian
+        - chinese
+        - japanese
+        - indian
+        - mediterranean
+        - french
+        - thai
+        - greek
+        - cajun
+        - korean
+        - vietnamese
+        - middle-eastern
+        - caribbean
+        - fusion
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: dietaryTags
+    attributes:
+      label: Dietary Tags (Optional)
+      description: Select all that apply
+      options:
+        - label: Vegetarian
+        - label: Vegan
+        - label: Gluten-Free
+        - label: Dairy-Free
+        - label: Nut-Free
+        - label: Low-Carb
+        - label: Keto
+        - label: Paleo
+
+  - type: checkboxes
+    id: cookingMethods
+    attributes:
+      label: Cooking Methods (Optional)
+      description: Select all that apply
+      options:
+        - label: Oven
+        - label: Stovetop
+        - label: Grill
+        - label: Air Fryer
+        - label: Slow Cooker
+        - label: Instant Pot
+        - label: No-Bake
+
+  - type: textarea
+    id: ingredients
+    attributes:
+      label: Ingredients
+      description: List all ingredients (one per line). Include quantities and measurements.
+      placeholder: |
+        1 cup all-purpose flour
+        2 large eggs
+        1/2 cup sugar
+        1 tsp vanilla extract
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: instructions
+    attributes:
+      label: Instructions
+      description: Step-by-step cooking instructions. Number each step.
+      placeholder: |
+        1. Preheat oven to 350°F.
+        2. Mix dry ingredients in a large bowl.
+        3. In a separate bowl, whisk together wet ingredients.
+        4. Combine wet and dry ingredients until just mixed.
+        5. Bake for 20-25 minutes until golden brown.
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Chef's Notes / Tips (Optional)
+      description: Any helpful tips, substitutions, or variations?
+      placeholder: |
+        - Can substitute almond flour for gluten-free version
+        - Best served warm with ice cream
+        - Store in airtight container for up to 5 days
+      render: markdown
+    validations:
+      required: false
+
+  - type: input
+    id: submitterName
+    attributes:
+      label: Your Name (Optional)
+      description: How should we credit you for this recipe?
+      placeholder: "Jane Chef"
+    validations:
+      required: false
+
+  - type: input
+    id: submitterEmail
+    attributes:
+      label: Your Email (Optional)
+      description: In case we need to contact you about this recipe
+      placeholder: "chef@example.com"
+    validations:
+      required: false
+
+  - type: textarea
+    id: sourceAttribution
+    attributes:
+      label: Recipe Source / Attribution
+      description: Is this your original recipe? If adapted from another source, please provide attribution.
+      placeholder: "Original recipe by [Your Name] or Adapted from [Source Name/URL]"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: agreement
+    attributes:
+      label: Submission Agreement
+      description: By submitting this recipe, you agree to the following
+      options:
+        - label: I confirm this recipe is original or properly attributed
+          required: true
+        - label: I agree to license this recipe under CC BY 4.0 (allows sharing with attribution)
+          required: true
+        - label: I have tested this recipe and confirmed it works
+          required: true
