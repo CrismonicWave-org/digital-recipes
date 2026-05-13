@@ -21,6 +21,20 @@ jobs:
         id: tag
         run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
       
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Install Python dependencies
+        run: pip install pyyaml
+      
+      - name: Generate manifest.json
+        run: |
+          python3 scripts/generate-manifest.py ${{ steps.tag.outputs.tag }}
+          echo "Manifest generated:"
+          ls -lh manifest.json
+      
       - name: Create recipes ZIP
         run: |
           cd recipes
@@ -43,7 +57,9 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: recipes.zip
+          files: |
+            manifest.json
+            recipes.zip
           body: |
             ## 🍳 RecipesGalore Recipe Collection ${{ steps.tag.outputs.tag }}
             
@@ -51,18 +67,34 @@ jobs:
             
             ### 📦 Download
             
-            **Direct Download URL:**
+            **Manifest (for apps - 16KB):**
+            ```
+            https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/manifest.json
+            ```
+            
+            **Full ZIP (for offline/backup - ~500KB):**
             ```
             https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/recipes.zip
             ```
             
             ### 📱 Mobile App Integration
             
-            The mobile app can fetch this ZIP directly without authentication:
+            **Recommended approach** - Fetch manifest for instant UI, download individual recipes on demand:
             
             ```javascript
-            const downloadUrl = 'https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/recipes.zip';
+            // Step 1: Fetch manifest (16KB - instant!)
+            const manifestUrl = 'https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/manifest.json';
+            const manifest = await fetch(manifestUrl).then(r => r.json());
+            
+            // Step 2: Show recipes in UI immediately
+            displayRecipes(manifest.recipes);
+            
+            // Step 3: When user taps recipe, fetch individual markdown
+            const recipeUrl = `https://raw.githubusercontent.com/${{ github.repository }}/${{ steps.tag.outputs.tag }}/recipes/\${recipe.filename}`;
+            const recipeContent = await fetch(recipeUrl).then(r => r.text());
             ```
+            
+            **Bandwidth savings:** ~91% (16KB manifest vs 500KB ZIP)!
             
             ### 📄 Format
             
