@@ -26,6 +26,9 @@ jobs:
         with:
           python-version: '3.x'
       
+      - name: Install Python dependencies
+        run: pip install pyyaml
+      
       - name: Generate manifest.json
         run: |
           python3 scripts/generate-manifest.py ${{ steps.tag.outputs.tag }}
@@ -87,8 +90,8 @@ jobs:
             displayRecipes(manifest.recipes);
             
             // Step 3: When user taps recipe, fetch individual markdown
-            const recipeUrl = `https://raw.githubusercontent.com/${{ github.repository }}/${{ steps.tag.outputs.tag }}/recipes/\${recipeId}.md`;
-            const recipe = await fetch(recipeUrl).then(r => r.text());
+            const recipeUrl = `https://raw.githubusercontent.com/${{ github.repository }}/${{ steps.tag.outputs.tag }}/recipes/\${recipe.filename}`;
+            const recipeContent = await fetch(recipeUrl).then(r => r.text());
             ```
             
             **Bandwidth savings:** ~91% (16KB manifest vs 500KB ZIP)!

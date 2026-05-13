@@ -7,10 +7,11 @@ This document describes how to create a new release of the RecipesGalore recipe 
 The release process is **automated** via GitHub Actions. When you push a version tag, the workflow:
 
 1. ✅ Creates a ZIP file of the `recipes/` folder (excludes `TEMPLATE.md`)
-2. ✅ Counts the number of recipes
-3. ✅ Creates a GitHub Release with the ZIP attached
-4. ✅ Generates release notes with download URL
-5. ✅ Makes the ZIP publicly downloadable (no auth required)
+2. ✅ Generates `manifest.json` with recipe metadata for all recipes
+3. ✅ Counts the number of recipes
+4. ✅ Creates a GitHub Release with both assets attached
+5. ✅ Generates release notes with download URLs
+6. ✅ Makes both assets publicly downloadable (no auth required)
 
 ## Security
 
@@ -41,6 +42,7 @@ The script will:
 - ✅ Check for a clean working tree (no uncommitted changes)
 - ✅ Verify you're on the `main` branch
 - ✅ Pull latest changes (fast-forward only, fails if branches have diverged)
+- ✅ Verify local `main` matches `origin/main` (no unpushed commits)
 - ✅ Count recipes
 - ✅ Prompt for version number
 - ✅ Validate version format
@@ -133,48 +135,123 @@ Use [semantic versioning](https://semver.org/):
 
 ## What Gets Released
 
-The release includes:
+Each release attaches two assets (no authentication required to download):
 
-✅ **Included:**
+| Asset | Size | Purpose |
+|-------|------|---------|
+| `manifest.json` | ~16 KB | Structured metadata for all recipes — ideal for app search/filter UIs |
+| `recipes.zip` | ~500 KB | Full recipe markdown files — for offline use or bulk processing |
+
+✅ **Included in `recipes.zip`:**
 - All `.md` files in `recipes/` folder
 - Recipe markdown with YAML frontmatter
 - Complete instructions, ingredients, notes
 
-❌ **Excluded:**
+❌ **Excluded from `recipes.zip`:**
 - `TEMPLATE.md` (template file)
 - Documentation files (README, guides)
 - Git history
 - Workflow files
 
+## manifest.json
+
+`manifest.json` is generated automatically at release time by `scripts/generate-manifest.py` and attached to every GitHub Release.
+
+### Structure
+
+```json
+{
+  "version": "v0.0.1",
+  "generated": "2026-05-05T12:00:00Z",
+  "recipeCount": 17,
+  "recipes": [
+    {
+      "id": "chicken-tikka-masala",
+      "filename": "chicken-tikka-masala.md",
+      "title": "Chicken Tikka Masala",
+      "slug": "chicken-tikka-masala",
+      "category": "dinner",
+      "difficulty": "intermediate",
+      "totalTime": 45,
+      "servings": 4,
+      "description": "...",
+      "featured": false,
+      "cuisine": "indian",
+      "primaryProtein": "chicken"
+    }
+  ],
+  "facets": {
+    "categories": ["appetizer", "breakfast", "dessert", "dinner", "lunch"],
+    "proteins": ["beef", "chicken", "seafood"],
+    "cuisines": ["american", "indian", "italian"],
+    "difficulties": ["beginner", "intermediate"],
+    "dietaryTags": ["gluten-free"],
+    "cookingMethods": ["oven", "stovetop"],
+    "occasions": [],
+    "seasons": []
+  }
+}
+```
+
+### Key fields
+
+- **`recipes[].filename`** — use this to fetch the full recipe markdown (see integration examples below)
+- **`recipes[].id`** — filename stem without `.md`, useful as a UI key
+- **`facets`** — pre-aggregated unique values for building filter UIs without scanning all recipes
+
 ## Download URLs
 
-Each release generates a public download URL (no authentication required):
+Each release generates public download URLs (no authentication required):
 
-**Pattern:**
+**manifest.json:**
+```
+https://github.com/CrismonicWave-org/digital-recipes/releases/download/{tag}/manifest.json
+```
+
+**recipes.zip:**
 ```
 https://github.com/CrismonicWave-org/digital-recipes/releases/download/{tag}/recipes.zip
 ```
 
-**Example:**
+**Example (v0.0.1):**
 ```
+https://github.com/CrismonicWave-org/digital-recipes/releases/download/v0.0.1/manifest.json
 https://github.com/CrismonicWave-org/digital-recipes/releases/download/v0.0.1/recipes.zip
 ```
 
 ## Mobile/Web App Integration
 
-Apps can fetch releases without authentication:
+**Recommended approach** — fetch the small manifest for instant search/filter UI, then download individual recipe markdown only when the user opens a recipe:
 
 ```javascript
-// Option 1: Fetch specific version
-const url = 'https://github.com/CrismonicWave-org/digital-recipes/releases/download/v0.0.1/recipes.zip';
+// Step 1: Fetch manifest (~16 KB — instant!)
+const tag = 'v0.0.1';
+const manifestUrl = `https://github.com/CrismonicWave-org/digital-recipes/releases/download/${tag}/manifest.json`;
+const manifest = await fetch(manifestUrl).then(r => r.json());
 
-// Option 2: Fetch latest release via API
-fetch('https://api.github.com/repos/CrismonicWave-org/digital-recipes/releases/latest')
-  .then(res => res.json())
-  .then(release => {
-    const zipUrl = release.assets.find(a => a.name === 'recipes.zip').browser_download_url;
-    // Download from zipUrl
-  });
+// Step 2: Display recipe list immediately using manifest metadata
+displayRecipes(manifest.recipes);
+// Use manifest.facets for filter dropdowns (category, cuisine, difficulty, etc.)
+
+// Step 3: When user taps a recipe, fetch its full markdown using recipe.filename
+async function openRecipe(recipe) {
+  const recipeUrl = `https://raw.githubusercontent.com/CrismonicWave-org/digital-recipes/${tag}/recipes/${recipe.filename}`;
+  const recipeContent = await fetch(recipeUrl).then(r => r.text());
+  renderMarkdown(recipeContent);
+}
+```
+
+**Always use `recipe.filename` (not `recipe.id`) to build the raw content URL** — `filename` is the canonical file name (e.g. `chicken-tikka-masala.md`) and matches the path inside `recipes.zip`.
+
+**Fetch latest release dynamically via GitHub API:**
+
+```javascript
+const { assets } = await fetch(
+  'https://api.github.com/repos/CrismonicWave-org/digital-recipes/releases/latest'
+).then(r => r.json());
+
+const manifestUrl = assets.find(a => a.name === 'manifest.json').browser_download_url;
+const zipUrl      = assets.find(a => a.name === 'recipes.zip').browser_download_url;
 ```
 
 ## Troubleshooting
@@ -219,14 +296,14 @@ The release workflow is defined in `.github/workflows/release.yml`
 
 Key components:
 - **Trigger:** `push: tags: v*.*.*`
+- **Manifest:** `python3 scripts/generate-manifest.py` (generates `manifest.json`)
 - **ZIP Creation:** `zip -r ../recipes.zip . -x "TEMPLATE.md"`
-- **Release Action:** `softprops/action-gh-release@v2`
+- **Release Action:** `softprops/action-gh-release@v2` (attaches both `manifest.json` and `recipes.zip`)
 
 ## Future Improvements
 
 Potential enhancements:
-- [ ] Validate YAML frontmatter before release
-- [ ] Generate recipe index/manifest JSON
+- [ ] Validate YAML frontmatter against schema before release
 - [ ] Include recipe count by category in release notes
 - [ ] Automated changelog generation
 - [ ] Recipe validation tests in CI

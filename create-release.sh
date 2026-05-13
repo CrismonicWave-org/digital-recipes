@@ -59,6 +59,15 @@ if ! git pull --ff-only origin main; then
     exit 1
 fi
 
+# Verify HEAD is in sync with origin/main (no unpushed commits)
+AHEAD=$(git rev-list --count origin/main..HEAD)
+if [ "$AHEAD" -gt 0 ]; then
+    echo -e "${RED}Error: Local main is ${AHEAD} commit(s) ahead of origin/main.${NC}"
+    echo "Push your commits before releasing:"
+    echo "  git push origin main"
+    exit 1
+fi
+
 # Count recipes (excluding TEMPLATE.md)
 RECIPE_COUNT=$(find recipes -name "*.md" -not -name "TEMPLATE.md" | wc -l | tr -d ' ')
 echo -e "${GREEN}Found ${RECIPE_COUNT} recipes in the collection${NC}"

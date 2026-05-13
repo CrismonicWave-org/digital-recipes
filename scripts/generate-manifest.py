@@ -10,6 +10,7 @@ import os
 import sys
 import json
 import re
+import yaml
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any
@@ -21,49 +22,11 @@ def extract_yaml_frontmatter(content: str) -> Dict[str, Any]:
     if not match:
         return {}
     
-    yaml_content = match.group(1)
-    
-    # Simple YAML parser (handles our specific format)
-    data = {}
-    current_list_key = None
-    
-    for line in yaml_content.split('\n'):
-        line = line.strip()
-        
-        # Skip comments and empty lines
-        if not line or line.startswith('#'):
-            continue
-        
-        # Handle list items
-        if line.startswith('- '):
-            if current_list_key:
-                value = line[2:].strip().strip('"\'')
-                if current_list_key not in data:
-                    data[current_list_key] = []
-                data[current_list_key].append(value)
-            continue
-        
-        # Handle key-value pairs
-        if ':' in line:
-            key, value = line.split(':', 1)
-            key = key.strip()
-            value = value.strip().strip('"\'')
-            
-            # Check if this starts a list
-            if not value:
-                current_list_key = key
-                data[key] = []
-            else:
-                current_list_key = None
-                # Convert numeric values
-                if value.isdigit():
-                    data[key] = int(value)
-                elif value.lower() in ('true', 'false'):
-                    data[key] = value.lower() == 'true'
-                else:
-                    data[key] = value
-    
-    return data
+    try:
+        data = yaml.safe_load(match.group(1))
+        return data if isinstance(data, dict) else {}
+    except yaml.YAMLError:
+        return {}
 
 def process_recipe_file(file_path: Path) -> Dict[str, Any]:
     """Process a single recipe markdown file."""
@@ -73,6 +36,10 @@ def process_recipe_file(file_path: Path) -> Dict[str, Any]:
         
         # Extract YAML frontmatter
         metadata = extract_yaml_frontmatter(content)
+        
+        if not metadata:
+            print(f"Warning: Skipping {file_path.name} - no valid YAML frontmatter found", file=sys.stderr)
+            return None
         
         # Create recipe entry for manifest
         recipe = {
